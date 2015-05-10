@@ -11,6 +11,14 @@ typedef Info = {
   prefix: String
 }
 
+typedef ClassFile = {
+  file: String,
+  name: String,
+  extend: String,
+  body: String,
+  position: Int
+}
+
 class PackPHP {
   static inline var INFO_FILE = 'packphp.json';
 
@@ -61,13 +69,32 @@ class PackPHP {
     if (body.indexOf('Haxe/PHP') == -1)
       throw "Main file does not seem to be a haxe generated php file";
 
+    var classes = getClasses(lib);
+    var classMap = new Map<String, ClassFile>();
+    classes.map(function(item) {
+      classMap.set(item.name, item);
+    });
+
+    classes.sort(function(a, b) {
+      return getPosition(classMap, a.name) - getPosition(classMap, b.name);
+    });
+
     body = body.replace(
       "require_once dirname(__FILE__).'/"+info.lib+"php/"+info.prefix+"Boot.class.php';",
-      getClasses(lib)
+      [for(item in classes) '//'+item.name+'-'+item.extend+'-\n'/*+item.body*/].join('\n')
     );
 
     File.saveContent(main, body);
     FileSystem.deleteFile(INFO_FILE);
+  }
+
+  static function getPosition(map: Map<String, ClassFile>, name: String) {
+    if (!map.exists(name)) return 0;
+    var item = map.get(name);
+    if (item.extend != '') {
+      return 1 + getPosition(map, item.extend);
+    }
+    return 0;
   }
 
   static function getCode(file) {
@@ -75,25 +102,31 @@ class PackPHP {
   }
 
   static function getClasses(dir: String) {
-    var body = '';
+    var classes = [];
     if (!dir.endsWith('/')) dir += '/';
     FileSystem.readDirectory(dir).map(function(name) {
       var path = dir + name;
       if (FileSystem.isDirectory(path)) {
-        body = getClasses(path) + body;
+        classes = classes.concat(getClasses(path));
       } else {
         if (name.substr(-3) == 'php') {
+          var name = '';
           var content = getCode(path);
-          if (name == 'Boot.class.php') {
-            body = content + body;
-          } else {
-            body += content;
-          }
+          var nameMatch = ~/class (.+?) /;
+          var extendMatch = ~/ extends (.+?) /;
+
+          classes.push({
+            file: name,
+            body: content,
+            name: nameMatch.match(content) ? nameMatch.matched(1) : '',
+            extend: extendMatch.match(content) ? extendMatch.matched(1) : '',
+            position: 0
+          });
         }
         FileSystem.deleteFile(path);
       }
     });
     FileSystem.deleteDirectory(dir);
-    return body;
+    return classes;
   }
 }
