@@ -1,0 +1,10 @@
+{
+  "name": "packphp",
+  "url" : "https://github.com/benmerckx/packphp/",
+  "license": "MIT",
+  "tags": ["php"],
+  "description": "Package all haxe generated php files into one single file",
+  "version": "0.0.1",
+  "releasenote": "Setup",
+  "contributors": ["Ben"]
+}
