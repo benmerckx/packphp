@@ -1,1 +1,2 @@
 --macro PackPHP.writeParams()
+-cmd haxelib run packphp

@@ -4,7 +4,7 @@
   "license": "MIT",
   "tags": ["php"],
   "description": "Package all haxe generated php files into one single file",
-  "version": "0.0.1",
-  "releasenote": "Setup",
+  "version": "0.0.2",
+  "releasenote": "Init",
   "contributors": ["Ben"]
 }
