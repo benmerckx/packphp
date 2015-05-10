@@ -1,9 +1,20 @@
 import sys.FileSystem;
 import sys.io.File;
+import haxe.Json;
+import haxe.macro.Context;
 
 using StringTools;
 
 class PackPHP {
+  macro public static function writeParams() {
+    var bin = Context.definedValue('php');
+    if (bin == null) return;
+    var info = {
+      bin: bin
+    };
+    File.saveContent('packphp.json', Json.stringify(info));
+  }
+
   public static function main() {
     var dir = Sys.getCwd() + 'bin/',
         lib = dir + 'lib',
