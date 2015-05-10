@@ -16,7 +16,8 @@ typedef ClassFile = {
   name: String,
   extend: String,
   body: String,
-  position: Int
+  position: Int,
+  type: String
 }
 
 class PackPHP {
@@ -81,14 +82,30 @@ class PackPHP {
 
     body = body.replace(
       "require_once dirname(__FILE__).'/"+info.lib+"php/"+info.prefix+"Boot.class.php';",
-      [for(item in classes) '//'+item.name+'-'+item.extend+'-\n'/*+item.body*/].join('\n')
+      [for (item in classes) {
+		var output = '';  
+		if (item.name != 'php_Boot')
+		  output += '\n_hx_register_type(new _hx_${phpType(item.type)}("${item.name}", "${item.name.split("_").join(".")}", "${main}"));';
+		output += item.body;
+	  }].join('\n')
     );
 
     File.saveContent(main, body);
     FileSystem.deleteFile(INFO_FILE);
   }
+  
+  static function phpType(type: String) {
+    return switch (type) {
+	  case 'class': 'class';
+	  case 'enum': 'enum';
+	  case 'interface': 'interface';
+	  case 'extern': 'class';
+	  default: '';
+	}
+  }
 
   static function getPosition(map: Map<String, ClassFile>, name: String) {
+    if (name == 'php_Boot') return -1;
     if (!map.exists(name)) return 0;
     var item = map.get(name);
     if (item.extend != '') {
@@ -98,7 +115,10 @@ class PackPHP {
   }
 
   static function getCode(file) {
-    return File.getContent(file).substr(6);
+	var code = File.getContent(file).substr(6);
+	var externCheck = ~/require_once (.+?)\.extern\.php';/g;
+	code = externCheck.replace(code, '');
+    return code;
   }
 
   static function getClasses(dir: String) {
@@ -110,17 +130,20 @@ class PackPHP {
         classes = classes.concat(getClasses(path));
       } else {
         if (name.substr(-3) == 'php') {
-          var name = '';
+		  var pack = dir.split('/');
+		  pack.splice(0, 2);
+		  var info = name.split('.');
+          var className = pack.join('_')+info[0];
           var content = getCode(path);
-          var nameMatch = ~/class (.+?) /;
           var extendMatch = ~/ extends (.+?) /;
 
           classes.push({
             file: name,
             body: content,
-            name: nameMatch.match(content) ? nameMatch.matched(1) : '',
+            name: className,//nameMatch.match(content) ? nameMatch.matched(1) : '',
             extend: extendMatch.match(content) ? extendMatch.matched(1) : '',
-            position: 0
+            position: 0,
+			type: info[1]
           });
         }
         FileSystem.deleteFile(path);
