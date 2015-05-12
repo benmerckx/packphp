@@ -84,7 +84,7 @@ class PackPHP {
       "require_once dirname(__FILE__).'/"+info.lib+"php/"+info.prefix+"Boot.class.php';",
       [for (item in classes) {
 		var output = '';  
-		if (item.name != 'php_Boot')
+		if (!isBoot(item.name))
 		  output += '\n_hx_register_type(new _hx_${phpType(item.type)}("${item.name}", "${item.name.split("_").join(".")}", "${main}"));';
 		output += item.body;
 	  }].join('\n')
@@ -103,9 +103,13 @@ class PackPHP {
 	  default: '';
 	}
   }
+  
+  static function isBoot(name: String) {
+	return name.endsWith('Boot') && name.substr(0, 3) == 'php';
+  }
 
   static function getPosition(map: Map<String, ClassFile>, name: String) {
-    if (name == 'php_Boot') return -1;
+    if (isBoot(name)) return -1;
     if (!map.exists(name)) return 0;
     var item = map.get(name);
     if (item.extend != '') {

@@ -4,7 +4,7 @@
   "license": "MIT",
   "tags": ["php"],
   "description": "Print code",
-  "version": "0.0.4",
-  "releasenote": "Init",
+  "version": "0.0.5",
+  "releasenote": "Extra check Form php_Boot with prefix",
   "contributors": ["Ben"]
 }
