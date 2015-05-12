@@ -70,7 +70,7 @@ class PackPHP {
     if (body.indexOf('Haxe/PHP') == -1)
       throw "Main file does not seem to be a haxe generated php file";
 
-    var classes = getClasses(lib);
+    var classes = getClasses(dir.split('/').length-1, lib);
     var classMap = new Map<String, ClassFile>();
     classes.map(function(item) {
       classMap.set(item.name, item);
@@ -125,17 +125,17 @@ class PackPHP {
     return code;
   }
 
-  static function getClasses(dir: String) {
+  static function getClasses(packagesCount: Int, dir: String) {
     var classes = [];
     if (!dir.endsWith('/')) dir += '/';
     FileSystem.readDirectory(dir).map(function(name) {
       var path = dir + name;
       if (FileSystem.isDirectory(path)) {
-        classes = classes.concat(getClasses(path));
+        classes = classes.concat(getClasses(packagesCount, path));
       } else {
         if (name.substr(-3) == 'php') {
 		  var pack = dir.split('/');
-		  pack.splice(0, 2);
+		  pack.splice(0, packagesCount+1);
 		  var info = name.split('.');
           var className = pack.join('_')+info[0];
           var content = getCode(path);

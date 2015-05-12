@@ -3,8 +3,8 @@
   "url" : "https://github.com/benmerckx/packphp/",
   "license": "MIT",
   "tags": ["php"],
-  "description": "Print code",
-  "version": "0.0.5",
-  "releasenote": "Extra check Form php_Boot with prefix",
+  "description": "Package all haxe generated php files into one single file",
+  "version": "0.0.6",
+  "releasenote": "Check for more than one directory in -php",
   "contributors": ["Ben"]
 }
